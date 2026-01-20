@@ -1,3 +1,66 @@
+/* GEN */
+
+.upload-section {
+    margin: 20px 0;
+    padding: 20px;
+    border: 2px dashed #ccc;
+    border-radius: 5px;
+}
+.upload-section.has-file {
+    border-color: #4CAF50;
+    background-color: #f0f8f0;
+}
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+}
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+#user-code {
+    margin-top: 20px;
+}
+.status {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+}
+.status.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+.status.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+.solution-list {
+    margin: 10px 0;
+}
+.solution-item {
+    padding: 8px;
+    margin: 5px 0;
+    background: #f0f0f0;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.solution-item:hover {
+    background: #e0e0e0;
+}
+.hidden {
+    display: none;
+}
+#logged-in-section {
+    padding: 10px;
+    background: #e8f5e9;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+/*  */
+/*  */
+
 .exercise {
     width: 100%;
     background-color: #FFF;

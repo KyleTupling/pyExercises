@@ -20,13 +20,19 @@ let currentUser = null;
 auth.onAuthStateChanged(user => {
     currentUser = user;
     if (user) {
-        document.getElementById('auth-status').textContent = `Logged in as: ${user.email}`;
+        // User is logged in - show logged in section, hide login form
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('logged-in-section').classList.remove('hidden');
+        document.getElementById('user-email').textContent = user.email;
         document.getElementById('save-btn').disabled = false;
         document.getElementById('load-btn').disabled = false;
     } else {
-        document.getElementById('auth-status').textContent = 'Not logged in';
+        // User is logged out - show login form, hide logged in section
+        document.getElementById('login-section').classList.remove('hidden');
+        document.getElementById('logged-in-section').classList.add('hidden');
         document.getElementById('save-btn').disabled = true;
         document.getElementById('load-btn').disabled = true;
+        document.getElementById('solutions-list').style.display = 'none';
     }
 });
 
@@ -35,8 +41,17 @@ function signup() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     
+    if (!email || !password) {
+        showStatus('Please enter email and password', 'error');
+        return;
+    }
+    
     auth.createUserWithEmailAndPassword(email, password)
-        .then(() => showStatus('Account created successfully!', 'success'))
+        .then(() => {
+            showStatus('Account created successfully!', 'success');
+            // Clear password field
+            document.getElementById('password').value = '';
+        })
         .catch(error => showStatus('Error: ' + error.message, 'error'));
 }
 
@@ -45,8 +60,17 @@ function login() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     
+    if (!email || !password) {
+        showStatus('Please enter email and password', 'error');
+        return;
+    }
+    
     auth.signInWithEmailAndPassword(email, password)
-        .then(() => showStatus('Logged in successfully!', 'success'))
+        .then(() => {
+            showStatus('Logged in successfully!', 'success');
+            // Clear password field
+            document.getElementById('password').value = '';
+        })
         .catch(error => showStatus('Error: ' + error.message, 'error'));
 }
 
@@ -55,7 +79,7 @@ function logout() {
     auth.signOut()
         .then(() => {
             showStatus('Logged out successfully!', 'success');
-            document.getElementById('solutions-list').style.display = 'none';
+            clearSolution();
         })
         .catch(error => showStatus('Error: ' + error.message, 'error'));
 }
@@ -78,7 +102,7 @@ document.getElementById('file-input').addEventListener('change', function(e) {
     }
 });
 
-// Save to Firestore
+// Save to Firestore - preserves whitespace and formatting
 function saveToFirestore() {
     if (!currentUser) {
         showStatus('Please login first!', 'error');
@@ -90,10 +114,10 @@ function saveToFirestore() {
         return;
     }
     
-    // Save to Firestore
+    // Save to Firestore - code is stored as-is with all formatting
     db.collection('users').doc(currentUser.uid).collection('solutions').add({
         fileName: fileName,
-        code: userCode,
+        code: userCode,  // Stored exactly as read from file
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
     })
     .then(() => {
@@ -129,13 +153,14 @@ function loadSolutions() {
                 div.className = 'solution-item';
                 
                 const date = data.timestamp ? data.timestamp.toDate().toLocaleString() : 'Unknown date';
-                div.innerHTML = `<strong>${data.fileName}</strong><br><small>${date}</small>`;
+                div.innerHTML = `<strong>${data.fileName}</strong><br><small>Saved: ${date}</small>`;
                 
+                // When clicked, load the code exactly as it was saved
                 div.onclick = () => {
                     userCode = data.code;
                     fileName = data.fileName;
                     displayCode(data.code);
-                    document.getElementById('file-status').textContent = `Loaded: ${data.fileName}`;
+                    document.getElementById('file-status').textContent = `Loaded from cloud: ${data.fileName}`;
                     showStatus('Solution loaded!', 'success');
                 };
                 
@@ -143,16 +168,19 @@ function loadSolutions() {
             });
             
             document.getElementById('solutions-list').style.display = 'block';
+            showStatus(`Found ${querySnapshot.size} saved solution(s)`, 'success');
         })
         .catch(error => {
             showStatus('Load error: ' + error.message, 'error');
         });
 }
 
-// Display code with syntax highlighting
+// Display code with syntax highlighting - preserves all formatting
 function displayCode(code) {
+    // Use textContent to preserve exact whitespace and tabs
     document.getElementById('code-display').textContent = code;
     document.getElementById('user-code').style.display = 'block';
+    // Prism will syntax highlight while preserving formatting
     Prism.highlightAll();
 }
 
