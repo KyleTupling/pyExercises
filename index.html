@@ -28,6 +28,47 @@
     </style>
 </head>
 <body>
+
+    <!-- Login Section -->
+    <div class="upload-section">
+        <h3>Login:</h3>
+        <input type="email" id="email" placeholder="Email" style="padding: 8px; margin: 5px;">
+        <input type="password" id="password" placeholder="Password" style="padding: 8px; margin: 5px;">
+        <button onclick="signup()">Sign Up</button>
+        <button onclick="login()">Login</button>
+        <button onclick="logout()">Logout</button>
+        <p id="auth-status">Not logged in</p>
+    </div>
+    
+    <div class="upload-section" id="upload-section">
+        <h3>Upload Your Solution:</h3>
+        <input type="file" id="file-input" accept=".py,.txt">
+        <p id="file-status">No file selected</p>
+    </div>
+    
+    <div>
+        <button onclick="saveToFirestore()" id="save-btn" disabled>Save to Cloud</button>
+        <button onclick="loadSolutions()" id="load-btn" disabled>Load My Solutions</button>
+        <button onclick="clearSolution()">Clear Display</button>
+    </div>
+    
+    <div id="status-message"></div>
+    
+    <div id="solutions-list" style="display: none;">
+        <h3>Your Saved Solutions:</h3>
+        <div id="solutions-container"></div>
+    </div>
+    
+    <div id="user-code" style="display: none;">
+        <h3>Your Code:</h3>
+        <pre><code class="language-python" id="code-display"></code></pre>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
     <h1>Python Exercise</h1>
 
     <div class="exercise">
