@@ -11,59 +11,39 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
     
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 50px auto;
             padding: 20px;
+
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
     </style>
 </head>
 <body>
     <h1>Python Exercise</h1>
 
-    <pre><code class="language-python" id="code-block">Loading...</code></pre>
+    <div class="exercise">
+        <h2 class="exercise-title">Exercise</h2>
+        <p>Create a function that takes a list of numbers and returns the largest number in the list.</p>
+
+        <div class="collapse-box">
+            <div class="collapse-box-title">
+                <span>Solution</span>
+                <span class="down-arrow">&darr;</span>
+            </div>
     
-    <h2>Example Code:</h2>
-    <pre><code class="language-python">def fibonacci(n):
-    if n <= 1:
-        return n
-    return fibonacci(n-1) + fibonacci(n-2)
-
-# Calculate the 10th Fibonacci number
-result = fibonacci(10)
-print(f"The 10th Fibonacci number is: {result}")
-</code></pre>
-
-    <div class="collapse-box">
-        <div class="collapse-box-title">
-            <span>Solution</span>
-            <span class="down-arrow">&darr;</span>
-        </div>
-
-        <div class="collapse-box-content">
-            <p>Solution to test</p>
-            <pre><code id="solution_test" class="language-python">Loading...</code></pre>
-        </div>
-    </div>
-
-    <div class="collapse-box">
-        <div class="collapse-box-title">
-            <span>Title</span>
-            <span class="down-arrow">&darr;</span>
-        </div>
-
-        <div class="collapse-box-content">
-            <p>Content</p>
-            <pre><code class="language-python">def fibonacci(n):
-    if n <= 1:
-        return n
-    return fibonacci(n-1) + fibonacci(n-2)
-
-# Calculate the 10th Fibonacci number
-result = fibonacci(10)
-print(f"The 10th Fibonacci number is: {result}")
-</code></pre>
+            <div class="collapse-box-content">
+                <p>Solution to test</p>
+                <pre><code id="solution_test" class="language-python">Loading...</code></pre>
+            </div>
         </div>
     </div>
 

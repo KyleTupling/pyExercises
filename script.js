@@ -13,10 +13,12 @@ for (let i = 0; i < collapseBoxTitle.length; i++) {
         if (isOpen) {
             collapseBoxContent[i].style.maxHeight  = null;
             collapseBoxContent[i].style.paddingBottom = "0";
+            collapseBoxTitle[i].classList.remove("open");
             collapseBoxArrow[i].classList.remove("open");
         } else {
             collapseBoxContent[i].style.maxHeight = collapseBoxContent[i].scrollHeight + "px";
-            collapseBoxContent[i].style.paddingBottom = "12px";
+            // collapseBoxContent[i].style.paddingBottom = "12px";
+            collapseBoxTitle[i].classList.add("open");
             collapseBoxArrow[i].classList.add("open");
         }
     });
