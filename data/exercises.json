@@ -1,0 +1,16 @@
+{
+    "exercises": {
+        "largest_number": {
+            "title": "Largest Number",
+            "instructions": "Create a function that takes a list of numbers and returns the largest number in the list.",
+            "example_input": "[1, 5, 3, 9, 2]",
+            "example_output": "9"
+        },
+        "add_two_numbers": {
+            "title": "Add Two Numbers",
+            "instructions": "Create a function that takes two numbers and returns their sum.",
+            "example_input": "3, 4",
+            "example_output": "7"
+        }
+    }
+}

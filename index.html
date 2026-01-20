@@ -17,82 +17,113 @@
 
         body {
             font-family: Arial, sans-serif;
-            max-width: 1200px;
-            margin: 50px auto;
-            padding: 20px;
-
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
         }
     </style>
 </head>
 <body>
-<h1>Python Exercise</h1>
-    
-    <h2>Problem:</h2>
-    <p>Write a function that calculates the nth Fibonacci number.</p>
-    
-    <!-- Login Section (hidden when logged in) -->
-    <div class="upload-section" id="login-section">
-        <h3>Login:</h3>
-        <input type="email" id="email" placeholder="Email" style="padding: 8px; margin: 5px;">
-        <input type="password" id="password" placeholder="Password" style="padding: 8px; margin: 5px;">
-        <button onclick="signup()">Sign Up</button>
-        <button onclick="login()">Login</button>
-    </div>
-    
     <!-- Logged in status (hidden when not logged in) -->
     <div id="logged-in-section" class="hidden">
         <p>Logged in as: <strong id="user-email"></strong></p>
         <button onclick="logout()">Logout</button>
     </div>
-    
-    <div class="upload-section" id="upload-section">
-        <h3>Upload Your Solution:</h3>
-        <input type="file" id="file-input" accept=".py,.txt">
-        <p id="file-status">No file selected</p>
-    </div>
-    
-    <div>
-        <button onclick="saveToFirestore()" id="save-btn" disabled>Save to Cloud</button>
-        <button onclick="loadSolutions()" id="load-btn" disabled>Load My Solutions</button>
-        <button onclick="clearSolution()">Clear Display</button>
-    </div>
-    
     <div id="status-message"></div>
     
-    <div id="solutions-list" style="display: none;">
-        <h3>Your Saved Solutions:</h3>
-        <div id="solutions-container"></div>
+    <!-- Login Modal -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <h2>Welcome to pyExercises!</h2>
+            <p>You must be logged in to use this application.</p>
+            <div class="modal-content-inputs">
+                <input type="email" id="email" placeholder="Email">
+                <input type="password" id="password" placeholder="Password">
+            </div>
+            <div class="modal-content-buttons">
+                <button onclick="signup()">Sign Up</button>
+                <button onclick="login()">Login</button>
+            </div>
+            <div id="modal-status"></div>
+        </div>
     </div>
+
+    <!-- Upload Solution Modal -->
+    <div class="upload-modal" id="upload-modal">
+        <div class="upload-modal-content">
+            <span class="modal-close" onclick="closeUploadModal()">&times;</span>
+            <h3 id="modal-exercise-title">Upload Solution</h3>
+            
+            <div class="upload-section" id="upload-section">
+                <label for="modal-file-input" class="modal-file-upload-label">
+                    Choose File
+                </label>
+                <input type="file" id="modal-file-input" accept=".py,.txt">
+                <p id="modal-file-status">No file selected</p>
+            </div>
+            
+            <div id="modal-code-preview" style="display: none; margin: 15px 0;">
+                <h4>Preview:</h4>
+                <pre><code class="language-python" id="modal-code-display"></code></pre>
+            </div>
+            
+            <div id="modal-status-message"></div>
+            
+            <button onclick="submitSolution()" id="modal-submit-btn" disabled>Submit Solution</button>
+            <button onclick="closeUploadModal()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <h1>pyExercises</h1>
+        
+        <div id="solutions-list" style="display: none;">
+            <h3>Your Saved Solutions:</h3>
+            <div id="solutions-container"></div>
+        </div>
+        
+        <div id="user-code" style="display: none;">
+            <h3>Current Code:</h3>
+            <pre><code class="language-python" id="code-display"></code></pre>
+        </div>
     
-    <div id="user-code" style="display: none;">
-        <h3>Current Code:</h3>
-        <pre><code class="language-python" id="code-display"></code></pre>
+        
+        <!-- <div class="exercise">
+            <h2 class="exercise-title">Exercise</h2>
+            <p>Create a function that takes a list of numbers and returns the largest number in the list.</p>
+    
+            <div class="collapse-box">
+                <div class="collapse-box-title">
+                    <span>Solution</span>
+                    <span class="down-arrow">&darr;</span>
+                </div>
+        
+                <div class="collapse-box-content">
+                    <p>Solution to test</p>
+                    <pre><code id="solution_test" class="language-python">Loading...</code></pre>
+                </div>
+            </div>
+        </div>
+    
+        <div class="exercise">
+            <h2 class="exercise-title">Exercise</h2>
+            <p>Create a function that takes a list of numbers and returns the largest number in the list.</p>
+    
+            <div class="collapse-box">
+                <div class="collapse-box-title">
+                    <span>Solution</span>
+                    <span class="down-arrow">&darr;</span>
+                </div>
+        
+                <div class="collapse-box-content">
+                    <p>Solution to test</p>
+                    <pre><code id="solution_test" class="language-python">Loading...</code></pre>
+                </div>
+            </div>
+        </div> -->
     </div>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-    <div class="exercise">
-        <h2 class="exercise-title">Exercise</h2>
-        <p>Create a function that takes a list of numbers and returns the largest number in the list.</p>
-
-        <div class="collapse-box">
-            <div class="collapse-box-title">
-                <span>Solution</span>
-                <span class="down-arrow">&darr;</span>
-            </div>
-    
-            <div class="collapse-box-content">
-                <p>Solution to test</p>
-                <pre><code id="solution_test" class="language-python">Loading...</code></pre>
-            </div>
-        </div>
-    </div>
 
     <!-- Prism JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>

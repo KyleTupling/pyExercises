@@ -20,18 +20,22 @@ let currentUser = null;
 auth.onAuthStateChanged(user => {
     currentUser = user;
     if (user) {
-        // User is logged in - show logged in section, hide login form
-        document.getElementById('login-section').classList.add('hidden');
+        // User is logged in - hide modal, show content
+        document.getElementById('login-modal').classList.remove('show');
+        document.getElementById('main-content').classList.add('show');
         document.getElementById('logged-in-section').classList.remove('hidden');
         document.getElementById('user-email').textContent = user.email;
-        document.getElementById('save-btn').disabled = false;
-        document.getElementById('load-btn').disabled = false;
+        // document.getElementById('save-btn').disabled = false;
+        // document.getElementById('load-btn').disabled = false;
+
+        loadExercises();
     } else {
-        // User is logged out - show login form, hide logged in section
-        document.getElementById('login-section').classList.remove('hidden');
+        // User is logged out - show modal, hide content
+        document.getElementById('login-modal').classList.add('show');
+        document.getElementById('main-content').classList.remove('show');
         document.getElementById('logged-in-section').classList.add('hidden');
-        document.getElementById('save-btn').disabled = true;
-        document.getElementById('load-btn').disabled = true;
+        // document.getElementById('save-btn').disabled = true;
+        // document.getElementById('load-btn').disabled = true;
         document.getElementById('solutions-list').style.display = 'none';
     }
 });
@@ -85,16 +89,16 @@ function logout() {
 }
 
 // Handle file selection
-document.getElementById('file-input').addEventListener('change', function(e) {
+document.getElementById('modal-file-input').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
         fileName = file.name;
         const reader = new FileReader();
         
         reader.onload = function(event) {
-            userCode = event.target.result;
-            displayCode(userCode);
-            document.getElementById('file-status').textContent = `File loaded: ${fileName}`;
+            //userCode = event.target.result;
+            //displayCode(userCode);
+            //document.getElementById('file-status').textContent = `File loaded: ${fileName}`;
             document.getElementById('upload-section').classList.add('has-file');
         };
         
@@ -178,7 +182,7 @@ function loadSolutions() {
 // Display code with syntax highlighting - preserves all formatting
 function displayCode(code) {
     // Use textContent to preserve exact whitespace and tabs
-    document.getElementById('code-display').textContent = code;
+    document.getElementById('modal-code-display').textContent = code;
     document.getElementById('user-code').style.display = 'block';
     // Prism will syntax highlight while preserving formatting
     Prism.highlightAll();
@@ -188,22 +192,304 @@ function displayCode(code) {
 function clearSolution() {
     userCode = '';
     fileName = '';
-    document.getElementById('file-input').value = '';
-    document.getElementById('code-display').textContent = '';
+    document.getElementById('modal-file-input').value = '';
+    document.getElementById('modal-code-display').textContent = '';
     document.getElementById('user-code').style.display = 'none';
-    document.getElementById('file-status').textContent = 'No file selected';
+    document.getElementById('modal-file-status').textContent = 'No file selected';
     document.getElementById('upload-section').classList.remove('has-file');
 }
 
 // Show status messages
 function showStatus(message, type) {
-    const statusDiv = document.getElementById('status-message');
+    // Check if we're in the modal
+    if (!currentUser) {
+        const modalStatus = document.getElementById('modal-status');
+        modalStatus.textContent = message;
+        modalStatus.className = `status ${type}`;
+        setTimeout(() => {
+            modalStatus.textContent = '';
+            modalStatus.className = '';
+        }, 5000);
+    } else {
+        const statusDiv = document.getElementById('status-message');
+        statusDiv.textContent = message;
+        statusDiv.className = `status ${type}`;
+        setTimeout(() => {
+            statusDiv.textContent = '';
+            statusDiv.className = '';
+        }, 5000);
+    }
+}
+
+/* ---------------------------------------------
+ Exercises
+--------------------------------------------- */
+let exercises = {};
+let currentExercise = null;
+
+// Load exercises from JSON
+async function loadExercises() {
+    try {
+        const response = await fetch("data/exercises.json");
+        const data = await response.json();
+        exercises = data.exercises;
+        displayExercises();
+    } catch (error) {
+        showStatus("Error loading exercises: " + error.message, "error");
+    }
+}
+
+// Display all exercises
+function displayExercises() {
+    //const container = document.getElementById('exercises-container');
+    //container.innerHTML = '<h2>Programming Exercises</h2>';
+    
+    for (const [exerciseId, exercise] of Object.entries(exercises)) {
+        const card = document.createElement('div');
+        card.className = 'exercise';
+        card.innerHTML = `
+            <h3>${exercise.title}</h3>
+            <div class="instructions">${exercise.instructions}</div>
+            ${exercise.example_input ? `
+                <div class="example">
+                    <strong>Example Input:</strong> ${exercise.example_input}<br>
+                    <strong>Expected Output:</strong> ${exercise.example_output}
+                </div>
+            ` : ''}
+
+            <div class="collapse-box">
+                <div class="collapse-box-title">
+                    <span>Solution</span>
+                    <span class="down-arrow">&darr;</span>
+                </div>
+        
+                <div class="collapse-box-content">
+                    <pre><code id="solution_${exerciseId}" class="language-python">Loading...</code></pre>
+                </div>
+            </div>
+
+            <button onclick="openUploadModal('${exerciseId}')">Upload Solution</button>
+            <button onclick="loadSolution('${exerciseId}')">Load My Solution</button>
+            <div id="code-${exerciseId}" style="display: none; margin-top: 15px;">
+                <h4>Your Code:</h4>
+                <pre><code class="language-python" id="display-${exerciseId}"></code></pre>
+            </div>
+        `;
+        document.getElementById("main-content").appendChild(card);
+
+        const title = card.querySelector(".collapse-box-title");
+        const content = card.querySelector(".collapse-box-content");
+        const arrow = card.querySelector(".down-arrow");
+        setupCollaspableClick(exerciseId, title, content, arrow);
+    }
+}
+
+// Handle file selection for specific exercise
+function handleFileSelect(exerciseId, input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            // Store in temporary object keyed by exercise
+            if (!window.exerciseCodes) window.exerciseCodes = {};
+            window.exerciseCodes[exerciseId] = {
+                code: event.target.result,
+                fileName: file.name
+            };
+            
+            document.getElementById(`status-${exerciseId}`).textContent = `File loaded: ${file.name}`;
+            document.getElementById(`btn-${exerciseId}`).disabled = false;
+            
+            // Display the code
+            displayExerciseCode(exerciseId, event.target.result);
+        };
+        reader.readAsText(file);
+    }
+}
+
+// Display code for specific exercise
+function displayExerciseCode(exerciseId, code) {
+    document.getElementById(`display-${exerciseId}`).textContent = code;
+    document.getElementById(`code-${exerciseId}`).style.display = 'block';
+    Prism.highlightAll();
+}
+
+let currentModalExercise = null;
+let modalExerciseCode = null;
+
+// Open the upload modal for a specific exercise
+function openUploadModal(exerciseId) {
+    if (!currentUser) {
+        showStatus('Please login first!', 'error');
+        return;
+    }
+    
+    currentModalExercise = exerciseId;
+    modalExerciseCode = null;
+    
+    // Set modal title
+    document.getElementById('modal-exercise-title').textContent = 
+        `Upload Solution: ${exercises[exerciseId].title}`;
+    
+    // Reset modal state
+    document.getElementById('modal-file-input').value = '';
+    document.getElementById('modal-file-status').textContent = 'No file selected';
+    document.getElementById('modal-code-preview').style.display = 'none';
+    document.getElementById('modal-code-display').textContent = '';
+    document.getElementById('modal-submit-btn').disabled = true;
+    document.getElementById('modal-status-message').textContent = '';
+    
+    // Show modal
+    document.getElementById('upload-modal').classList.add('show');
+}
+
+// Close the upload modal
+function closeUploadModal() {
+    document.getElementById('upload-modal').classList.remove('show');
+    currentModalExercise = null;
+    modalExerciseCode = null;
+}
+
+// Handle file selection in modal
+document.getElementById('modal-file-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            modalExerciseCode = {
+                code: event.target.result,
+                fileName: file.name
+            };
+            
+            // Update status
+            document.getElementById('modal-file-status').textContent = `File loaded: ${file.name}`;
+            document.getElementById('modal-submit-btn').disabled = false;
+            
+            // Show preview
+            document.getElementById('modal-code-display').textContent = event.target.result;
+            document.getElementById('modal-code-preview').style.display = 'block';
+            Prism.highlightAll();
+        };
+        reader.readAsText(file);
+    }
+});
+
+// Submit solution from modal
+function submitSolution() {
+    if (!currentModalExercise || !modalExerciseCode) {
+        showModalStatus('Please select a file first!', 'error');
+        return;
+    }
+    
+    const { code, fileName } = modalExerciseCode;
+    
+    // Save to Firestore
+    db.collection('users').doc(currentUser.uid)
+      .collection('solutions').doc(currentModalExercise).set({
+        fileName: fileName,
+        code: code,
+        exerciseId: currentModalExercise,
+        exerciseTitle: exercises[currentModalExercise].title,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+        showModalStatus('Solution saved successfully!', 'success');
+        
+        // Also display it in the main page
+        displayExerciseCode(currentModalExercise, code);
+        
+        // Store the title before closing modal
+        const exerciseTitle = exercises[currentModalExercise].title;
+        
+        // Close modal after short delay
+        setTimeout(() => {
+            closeUploadModal();
+            showStatus(`Solution for "${exerciseTitle}" saved!`, 'success');
+        }, 1500);
+    })
+    .catch(error => {
+        showModalStatus('Save error: ' + error.message, 'error');
+    });
+}
+
+// Show status in modal
+function showModalStatus(message, type) {
+    const statusDiv = document.getElementById('modal-status-message');
     statusDiv.textContent = message;
     statusDiv.className = `status ${type}`;
-    setTimeout(() => {
-        statusDiv.textContent = '';
-        statusDiv.className = '';
-    }, 5000);
+}
+
+// Upload solution for specific exercise
+function uploadSolution(exerciseId) {
+    if (!currentUser) {
+        showStatus('Please login first!', 'error');
+        return;
+    }
+    
+    if (!window.exerciseCodes || !window.exerciseCodes[exerciseId]) {
+        showStatus('Please select a file first!', 'error');
+        return;
+    }
+    
+    const { code, fileName } = window.exerciseCodes[exerciseId];
+    
+    // Save to Firestore under exercise-specific path
+    db.collection('users').doc(currentUser.uid)
+      .collection('solutions').doc(exerciseId).set({
+        fileName: fileName,
+        code: code,
+        exerciseId: exerciseId,
+        exerciseTitle: exercises[exerciseId].title,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+        showStatus(`Solution for "${exercises[exerciseId].title}" saved successfully!`, 'success');
+    })
+    .catch(error => {
+        showStatus('Save error: ' + error.message, 'error');
+    });
+}
+
+// Load solution for specific exercise
+function loadSolution(exerciseId) {
+    if (!currentUser) {
+        showStatus('Please login first!', 'error');
+        return;
+    }
+    
+    db.collection('users').doc(currentUser.uid)
+      .collection('solutions').doc(exerciseId).get()
+      .then(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            displayExerciseCode(exerciseId, data.code);
+            // document.getElementById(`status-${exerciseId}`).textContent = 
+            //     `Loaded: ${data.fileName}`;
+            showStatus('Solution loaded!', 'success');
+        } else {
+            showStatus(`No saved solution for "${exercises[exerciseId].title}"`, 'error');
+        }
+    })
+    .catch(error => {
+        showStatus('Load error: ' + error.message, 'error');
+    });
+}
+
+async function hasUploadedSolution(exerciseId) {
+    if (!currentUser) {
+        showStatus('Please login first!', 'error');
+        return false;
+    }
+    
+    try {
+        const doc = await db.collection('users').doc(currentUser.uid)
+            .collection('solutions').doc(exerciseId).get();
+        
+        return doc.exists;
+    } catch (error) {
+        showStatus('Load error: ' + error.message, 'error');
+        return false;
+    }
 }
 
 /* ---------------------------------------------
@@ -212,6 +498,38 @@ function showStatus(message, type) {
 const collapseBoxTitle   = document.querySelectorAll(".collapse-box-title");
 const collapseBoxContent = document.querySelectorAll(".collapse-box-content");
 const collapseBoxArrow   = document.querySelectorAll(".down-arrow");
+
+function setupCollaspableClick(ex, title, content, arrow) {
+    title.addEventListener("click", async () => {
+        const isOpen = content.style.maxHeight;
+        
+        if (isOpen) {
+            content.style.maxHeight  = null;
+            content.style.paddingBottom = "0";
+            title.classList.remove("open");
+            arrow.classList.remove("open");
+        } else {
+            hasUploaded = await hasUploadedSolution(ex);
+            if (!hasUploaded) return;
+
+            const codeSection = document.getElementById(`solution_${ex}`);
+            let code = "";
+            fetch(`solutions/${ex}.py`)
+                .then(response => response.text())
+                .then(code => {
+                    codeSection.textContent = code;
+                    Prism.highlightAll();
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    // collapseBoxContent[i].style.paddingBottom = "12px";
+                    title.classList.add("open");
+                    arrow.classList.add("open");
+                })
+                .catch(error => {
+                    codeSection.textContent = "Error loading solution";
+                });
+        }
+    });
+}
 
 // Add event listeners to all collapse boxes
 for (let i = 0; i < collapseBoxTitle.length; i++) {
@@ -232,12 +550,19 @@ for (let i = 0; i < collapseBoxTitle.length; i++) {
     });
 }
 
-fetch("solutions/test.py")
-    .then(response => response.text())
-    .then(code => {
-        document.getElementById('solution_test').textContent = code;
-        Prism.highlightAll();
-    })
-    .catch(error => {
-        document.getElementById('solution_test').textContent = "Error loading solution";
-    });
+// fetch("solutions/test.py")
+//     .then(response => response.text())
+//     .then(code => {
+//         document.getElementById('solution_test').textContent = code;
+//         Prism.highlightAll();
+//     })
+//     .catch(error => {
+//         document.getElementById('solution_test').textContent = "Error loading solution";
+//     });
+
+/* ---------------------------------------------
+ Init
+--------------------------------------------- */
+// window.addEventListener("load", () => {
+//     loadExercises();
+// });
