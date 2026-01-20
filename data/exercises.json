@@ -11,6 +11,12 @@
             "instructions": "Create a function that takes two numbers and returns their sum.",
             "example_input": "3, 4",
             "example_output": "7"
+        },
+        "check_number_even": {
+            "title": "Check Number Even",
+            "instructions": "Create a function that takes a number and returns whether the number is even or not.",
+            "example_input": "4",
+            "example_output": "True"
         }
     }
 }
