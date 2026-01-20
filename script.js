@@ -25,9 +25,9 @@ for (let i = 0; i < collapseBoxTitle.length; i++) {
 fetch("solutions/test.py")
     .then(response => response.text())
     .then(code => {
-        document.getElementById('code-block').textContent = code;
+        document.getElementById('solution_test').textContent = code;
         Prism.highlightAll();
     })
     .catch(error => {
-        document.getElementById('code-block').textContent = "Error loading solution";
+        document.getElementById('solution_test').textContent = "Error loading solution";
     });
