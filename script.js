@@ -22,4 +22,12 @@ for (let i = 0; i < collapseBoxTitle.length; i++) {
     });
 }
 
-fetch("solutions/test.py");
+fetch("solutions/test.py")
+    .then(response => response.text())
+    .then(code => {
+        document.getElementById('code-block').textContent = code;
+        Prism.highlightAll();
+    })
+    .catch(error => {
+        document.getElementById('code-block').textContent = "Error loading solution";
+    });
