@@ -1,0 +1,52 @@
+.collapse-box {
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: 100%;
+}
+
+.collapse-box-title {
+    width: 90%;
+
+    background-color: #222;
+    color: #EEE;
+    font-weight: bold;
+
+    padding: 20px;
+    cursor: pointer;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    user-select: none;
+}
+
+.down-arrow {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: -5px;
+
+    transition: transform 0.5s ease;
+}
+
+.down-arrow.open {
+    transform: rotate(180deg);
+}
+
+.collapse-box-content {
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 16px;
+    transition: max-height 0.5s ease;
+
+    background-color: #FFF;
+    box-shadow: 0 2px 4px rgba(140, 140, 140, 0.5);
+    
+    margin-bottom: 10px;
+
+    width: 90%;
+}
