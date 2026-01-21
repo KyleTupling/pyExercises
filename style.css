@@ -85,6 +85,134 @@ input {
     gap: 20px;
 }
 
+.profile-container {
+    width: 100%;
+    box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+
+    border-radius: 12px;
+    padding: 20px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-portrait-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-picture-container {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    z-index: -1;
+
+    border-radius: 50%;
+}
+
+.profile-picture {
+    width: 100px;
+    height: auto;
+    border-radius: 50%;
+    /* filter: drop-shadow(0 5px 4px rgba(40, 40, 40, 0.2)); */
+    /* z-index: -1; */
+
+    cursor: pointer;
+
+    transition: border-radius 0.2s ease;
+}
+
+.profile-picture-change-tip {
+    opacity: 0;
+    position: absolute;
+    top: 25px;
+    text-align: center;
+    font-size: 12px;
+    cursor: pointer;
+    color: white;
+
+    transition: opacity 0.2s ease;
+}
+
+.profile-picture-container:hover > .profile-picture-change-tip {
+    opacity: 1;
+}
+
+.profile-picture-container:hover > .profile-picture {
+    border-radius: 30%;
+    filter: blur(1px) brightness(0.5) ;
+}
+
+.users-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.user-card {
+    border: 1px solid #22222222;
+    border-radius: 8px;
+    padding: 15px;
+    transition: box-shadow 0.2s;
+    overflow: hidden;
+}
+
+.user-card:hover {
+    box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-info > div {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.user-info strong {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: help;
+}
+
+.user-info strong:hover {
+    white-space: normal;
+    word-break: break-word;
+}
+
+.user-profile-pic {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.user-joined {
+    font-size: 12px;
+    color: #666;
+    margin: 5px 0 0 0;
+}
+
 .upload-section {
     margin: 20px 0;
     padding: 20px;
@@ -204,6 +332,66 @@ button:hover {
 
     border-radius: 12px;
     box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+}
+
+.exercise h3 {
+    margin-top: 5px;
+}
+
+.example {
+    margin-top: 10px;
+}
+
+.hints-container {
+    margin: 15px 0 0 0;
+    padding: 15px;
+    background: #FBFBFB;
+    border-radius: 8px;
+    box-shadow: rgba(9, 30, 66, 0.18) 0px 4px 8px -5px inset, rgba(9, 30, 66, 0.06) 0px 0px 0px 1px inset;
+}
+
+.hints-container h4 {
+    margin-top: 5px;
+    color: #333;
+}
+
+.hint-wrapper {
+    margin: 5px 0;
+}
+
+/* .hint-reveal button {
+    padding: 8px 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+} */
+
+/* .hint-reveal button:hover {
+    background: #0056b3;
+} */
+
+.hint-item {
+    padding: 12px;
+    margin: 8px 0;
+    background: #FFF;
+    border-left: 4px solid #222;
+    border-radius: 4px;
+    animation: fadeIn 0.3s ease;
+    box-shadow: rgba(9, 30, 66, 0.1) 0px 4px 8px -2px, rgba(9, 30, 66, 0.04) 0px 0px 0px 1px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .collapse-box {

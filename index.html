@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python Programming Exercise</title>
+    <title>pyExercises</title>
 
     <link rel="stylesheet" href="style.css" />
     
@@ -72,6 +72,26 @@
     </div>
 
     <div id="main-content">
+        <div class="profile-container">
+            <div class="profile-portrait-section">
+                <div class="profile-picture-container" onclick="document.getElementById('profile-upload').click()">
+                    <img class="profile-picture" id="profile-picture" src="img/portrait_placeholder.png" alt="portrait_placeholder"/>
+                    <p class="profile-picture-change-tip">Change Profile Picture</p>
+                </div>
+                <h2 id="profile-username"></h2>
+                <p>Total Exercises Attempted: <strong id="exercises-attempted">0</strong></p>
+                <!-- <button onclick="document.getElementById('profile-upload').click()">
+                Change Profile Picture
+                </button> -->
+                <input type="file" id="profile-upload" accept="image/*" 
+                    style="display: none;" onchange="uploadProfilePicture(this)">
+            </div>
+        </div>
+
+        <div class="users-container" id="users-container">
+
+        </div>
+
         <h1>pyExercises</h1>
         
         <div id="solutions-list" style="display: none;">
@@ -124,6 +144,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 
     <!-- Prism JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>

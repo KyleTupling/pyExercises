@@ -28,7 +28,11 @@
             "title": "Longest Word In Sentence",
             "instructions": "Create a function that takes a string and returns a list of the longest word(s) in that string.",
             "example_input": "The quick brown fox jumps over the lazy dog",
-            "example_output": "['quick', 'brown', 'jumps']"
+            "example_output": "['quick', 'brown', 'jumps']",
+            "hints": [
+                "The built-in function <code class='language-python' style='font-size: 16px;'>split()</code> will split a string into a list where each word is a list item. Usage: <code class='language-python' style='font-size: 16px;'>myStr.split()</code>",
+                "Aim to find the highest length, then collect all words with that length."
+            ]
         }
     }
 }

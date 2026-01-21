@@ -11,10 +11,18 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+// db.settings({
+//     timestampsInSnapshots: true
+// });
+const storage = firebase.storage();
 
 let userCode = '';
 let fileName = '';
 let currentUser = null;
+
+let exercises = {};
+let currentExercise = null;
+let totalExercisesAttempted = 0;
 
 // Auth state observer
 auth.onAuthStateChanged(user => {
@@ -28,7 +36,13 @@ auth.onAuthStateChanged(user => {
         // document.getElementById('save-btn').disabled = false;
         // document.getElementById('load-btn').disabled = false;
 
-        loadExercises();
+        // Load profile picture
+        loadProfilePicture();
+
+        loadExercises()
+            .then(() => totalExercisesAttempted = getTotalExercisesAttempted());
+
+        document.getElementById("profile-username").textContent = user.email.split("@")[0];
     } else {
         // User is logged out - show modal, hide content
         document.getElementById('login-modal').classList.add('show');
@@ -39,6 +53,18 @@ auth.onAuthStateChanged(user => {
         document.getElementById('solutions-list').style.display = 'none';
     }
 });
+
+async function getTotalExercisesAttempted() {
+    let total = 0;
+    for (const [exerciseId, exercise] of Object.entries(exercises)) {
+        const uploaded = await hasUploadedSolution(exerciseId);
+        if (uploaded) total++;
+    }
+
+    document.getElementById('exercises-attempted').textContent = total;
+
+    return total;
+}
 
 // Sign up
 function signup() {
@@ -51,6 +77,14 @@ function signup() {
     }
     
     auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Create user document immediately
+            return db.collection('users').doc(userCredential.user.uid).set({
+                email: userCredential.user.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                profilePictureURL: null
+            });
+        })
         .then(() => {
             showStatus('Account created successfully!', 'success');
             // Clear password field
@@ -70,6 +104,22 @@ function login() {
     }
     
     auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Ensure user document exists (in case it's an old account)
+            return db.collection('users').doc(userCredential.user.uid).update({
+                lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(error => {
+                // If document doesn't exist, create it
+                if (error.code === 'not-found') {
+                    return db.collection('users').doc(userCredential.user.uid).set({
+                        email: userCredential.user.email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                throw error;
+            });
+        })
         .then(() => {
             showStatus('Logged in successfully!', 'success');
             // Clear password field
@@ -87,6 +137,128 @@ function logout() {
         })
         .catch(error => showStatus('Error: ' + error.message, 'error'));
 }
+
+// Upload profile picture
+function uploadProfilePicture(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        showStatus('Please select an image file', 'error');
+        return;
+    }
+    
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        showStatus('Image must be less than 5MB', 'error');
+        return;
+    }
+    
+    // Show loading status
+    showStatus('Uploading profile picture...', 'success');
+    
+    // Create a reference to the storage location
+    const storageRef = storage.ref();
+    const profilePicRef = storageRef.child(`profile_pictures/${currentUser.uid}`);
+    
+    // Upload the file
+    profilePicRef.put(file)
+        .then(snapshot => {
+            // Get the download URL
+            return snapshot.ref.getDownloadURL();
+        })
+        .then(downloadURL => {
+            // Only update the profilePictureURL field
+            return db.collection('users').doc(currentUser.uid).update({
+                profilePictureURL: downloadURL
+            });
+        })
+        .then(() => {
+            showStatus('Profile picture updated!', 'success');
+            // Display the new profile picture
+            loadProfilePicture();
+        })
+        .catch(error => {
+            showStatus('Upload error: ' + error.message, 'error');
+        });
+}
+
+// Load and display profile picture
+function loadProfilePicture() {
+    if (!currentUser) return;
+    
+    db.collection('users').doc(currentUser.uid).get()
+        .then(doc => {
+            if (doc.exists && doc.data().profilePictureURL) {
+                const img = document.getElementById('profile-picture');
+                img.src = doc.data().profilePictureURL;
+                img.style.display = 'block';
+            } else {
+                // Show default placeholder or hide image
+                document.getElementById('profile-picture').src = "img/portrait_placeholder.png";
+            }
+        })
+        .catch(error => {
+            console.error('Error loading profile picture:', error);
+        });
+}
+
+async function loadUsersList() {
+    const usersList = document.getElementById("users-container");
+    usersList.innerHTML = "<p>Loading users...</p>";
+
+    try {
+        const snapshot = await db.collection('users').get();
+
+        if (snapshot.empty) {
+            usersList.innerHTML = "<p>No users found.</p>";
+            return;
+        }
+
+        usersList.innerHTML = ''; // Clear loading message
+
+        snapshot.forEach(doc => {
+            const user = doc.data();
+            if (user == currentUser) return;
+            const userId = doc.id;
+            
+            const userCard = document.createElement('div');
+            userCard.className = 'user-card';
+            userCard.innerHTML = `
+                <div class="user-info">
+                    ${user.profilePictureURL ? 
+                        `<img src="${user.profilePictureURL}" 
+                             alt="${user.email}" 
+                             class="user-profile-pic">` 
+                        : `<img src="img/portrait_placeholder.png" 
+                             alt="${user.email}" 
+                             class="user-profile-pic">`
+                    }
+                    <div>
+                        <strong>${user.email}</strong>
+                        <p class="user-joined">
+                            ${user.createdAt && user.createdAt.seconds ? 
+                                `Joined: ${user.createdAt.toDate().toLocaleDateString()}` 
+                                : 'Member'}
+                        </p>
+                        <p class="user-joined">
+                            ${user.lastLogin ? 
+                                `Last Login: ${user.lastLogin.toDate().toLocaleDateString()}` 
+                                : 'Member'}
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            usersList.appendChild(userCard);
+        });
+    } catch (error) {
+        usersList.innerHTML = `<p class="error">Error loading users: ${error.message}</p>`;
+        showStatus('Error loading users: ' + error.message, 'error');
+    }
+}
+loadUsersList();
 
 // Handle file selection
 document.getElementById('modal-file-input').addEventListener('change', function(e) {
@@ -224,8 +396,6 @@ function showStatus(message, type) {
 /* ---------------------------------------------
  Exercises
 --------------------------------------------- */
-let exercises = {};
-let currentExercise = null;
 
 // Load exercises from JSON
 async function loadExercises() {
@@ -256,6 +426,21 @@ function displayExercises() {
                     <strong>Expected Output:</strong> ${exercise.example_output}
                 </div>
             ` : ''}
+            ${exercise.hints && exercise.hints.length > 0 ? `
+                <div class="hints-container">
+                    <h4>Hints (${exercise.hints.length} available)</h4>
+                    ${exercise.hints.map((hint, index) => `
+                        <div class="hint-wrapper" id="hint-wrapper-${exerciseId}-${index} style="display: ${index === 0 ? 'block' : 'none'};">
+                            <div class="hint-reveal" id="hint-reveal-${exerciseId}-${index}">
+                                <button onclick="revealHint('${exerciseId}', ${index})">Show Hint ${index + 1}</button>
+                            </div>
+                            <div class="hint-item" id="hint-content-${exerciseId}-${index}" style="display: none;">
+                                <strong>Hint ${index + 1}:</strong> ${hint}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
 
             <div class="collapse-box">
                 <div class="collapse-box-title">
@@ -281,6 +466,20 @@ function displayExercises() {
         const content = card.querySelector(".collapse-box-content");
         const arrow = card.querySelector(".down-arrow");
         setupCollaspableClick(exerciseId, title, content, arrow);
+    }
+}
+
+function revealHint(exerciseId, hintIndex) {
+    // Hide the button
+    document.getElementById(`hint-reveal-${exerciseId}-${hintIndex}`).style.display = 'none';
+    
+    // Show the hint content
+    document.getElementById(`hint-content-${exerciseId}-${hintIndex}`).style.display = 'block';
+    
+    // Show the next hint button if it exists
+    const nextHintWrapper = document.getElementById(`hint-wrapper-${exerciseId}-${hintIndex + 1}`);
+    if (nextHintWrapper) {
+        nextHintWrapper.style.display = 'block';
     }
 }
 
@@ -513,20 +712,28 @@ function setupCollaspableClick(ex, title, content, arrow) {
             if (!hasUploaded) return;
 
             const codeSection = document.getElementById(`solution_${ex}`);
-            let code = "";
-            fetch(`solutions/${ex}.py`)
-                .then(response => response.text())
-                .then(code => {
-                    codeSection.textContent = code;
-                    Prism.highlightAll();
-                    content.style.maxHeight = content.scrollHeight + "px";
-                    // collapseBoxContent[i].style.paddingBottom = "12px";
-                    title.classList.add("open");
-                    arrow.classList.add("open");
-                })
-                .catch(error => {
-                    codeSection.textContent = "Error loading solution";
-                });
+            // Only fetch if not already loaded
+            if (codeSection.textContent == "Loading...") {
+                let code = "";
+                fetch(`solutions/${ex}.py`)
+                    .then(response => response.text())
+                    .then(code => {
+                        codeSection.textContent = code;
+                        Prism.highlightAll();
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        // collapseBoxContent[i].style.paddingBottom = "12px";
+                        title.classList.add("open");
+                        arrow.classList.add("open");
+                    })
+                    .catch(error => {
+                        codeSection.textContent = "Error loading solution";
+                    });
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                // collapseBoxContent[i].style.paddingBottom = "12px";
+                title.classList.add("open");
+                arrow.classList.add("open");
+            }
         }
     });
 }
