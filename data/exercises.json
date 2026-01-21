@@ -17,6 +17,18 @@
             "instructions": "Create a function that takes a number and returns whether the number is even or not.",
             "example_input": "4",
             "example_output": "True"
+        },
+        "most_common_number": {
+            "title": "Most Common Number",
+            "instructions": "Create a function that takes a list of numbers and returns a list of the numbers that appear the most times. Return None if there no numbers appear more than others.",
+            "example_input": "[2, 7, 5, 2, 9] | [5, 3, 6, 3, 5] | [1, 2, 3, 4, 5]",
+            "example_output": "[2] | [5, 3] | None"
+        },
+        "longest_word_in_sentence": {
+            "title": "Longest Word In Sentence",
+            "instructions": "Create a function that takes a string and returns a list of the longest word(s) in that string.",
+            "example_input": "The quick brown fox jumps over the lazy dog",
+            "example_output": "['quick', 'brown', 'jumps']"
         }
     }
 }
